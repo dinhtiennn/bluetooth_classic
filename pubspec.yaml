@@ -1,4 +1,4 @@
-name: psdk_bluetooth_classic
+name: bluetooth_classic
 description: Classic bluetooth device
 version: 0.1.3
 repository: https://github.com/prtmax/psdk-examples
