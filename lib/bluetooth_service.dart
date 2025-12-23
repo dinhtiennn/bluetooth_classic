@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter_bluetooth_classic_serial/flutter_bluetooth_classic.dart';
+import 'src/flutter_bluetooth_classic_patched.dart';
 
 /// Service wrapper (giống demo) cho Bluetooth Classic Serial.
 ///
