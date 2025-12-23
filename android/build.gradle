@@ -1,0 +1,36 @@
+// Build configuration for bluetooth_classic package
+// Fix lỗi android:attr/lStar not found với flutter_bluetooth_serial
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Force androidx.core version để fix lỗi lStar
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.12.0'
+            force 'androidx.core:core-ktx:1.12.0'
+        }
+    }
+}
+
+// Đảm bảo tất cả subprojects (bao gồm flutter_bluetooth_serial) dùng compileSdk đúng
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty("android")) {
+            def android = project.android
+            // Set compileSdk = 36 để hỗ trợ android:attr/lStar (từ API 33+)
+            if (android.hasProperty("compileSdk")) {
+                android.compileSdk = 36
+            }
+            if (android.hasProperty("compileSdkVersion")) {
+                android.compileSdkVersion = 36
+            }
+        }
+    }
+}
+
