@@ -16,9 +16,9 @@ public final class GeneratedPluginRegistrant {
   private static final String TAG = "GeneratedPluginRegistrant";
   public static void registerWith(@NonNull FlutterEngine flutterEngine) {
     try {
-      flutterEngine.getPlugins().add(new io.github.edufolly.flutterbluetoothserial.FlutterBluetoothSerialPlugin());
+      flutterEngine.getPlugins().add(new com.example.flutter_bluetooth_classic.FlutterBluetoothClassicPlugin());
     } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin flutter_bluetooth_serial, io.github.edufolly.flutterbluetoothserial.FlutterBluetoothSerialPlugin", e);
+      Log.e(TAG, "Error registering plugin flutter_bluetooth_classic_serial, com.example.flutter_bluetooth_classic.FlutterBluetoothClassicPlugin", e);
     }
     try {
       flutterEngine.getPlugins().add(new com.baseflow.permissionhandler.PermissionHandlerPlugin());

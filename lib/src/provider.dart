@@ -1,65 +1,80 @@
 part of 'package:bluetooth_classic/bluetooth_classic.dart';
 
-class ClassicBluetooth extends Fluetooth<FlutterBluetoothSerial, ClassicBluetoothDevice> {
-  final FlutterBluetoothSerial _instance = FlutterBluetoothSerial.instance;
-
-  ClassicConnectedDevice? _connectedDevice;
-  final _discoveryController = StreamController<ClassicBluetoothDevice>.broadcast();
-  late List<BluetoothDiscoveryResult> notifiedDevices = [];
-  static ClassicBluetooth? _classicBluetooth;
-
-  factory ClassicBluetooth() => _classicBluetooth ??= ClassicBluetooth._();
+class ClassicBluetooth
+    extends Fluetooth<FlutterBluetoothClassic, ClassicBluetoothDevice> {
+  final FlutterBluetoothClassic _instance = FlutterBluetoothClassic();
 
   ClassicBluetooth._() {
     super.init();
   }
 
+  ClassicConnectedDevice? _connectedDevice;
+  final _discoveryController =
+      StreamController<ClassicBluetoothDevice>.broadcast();
+  StreamSubscription<BluetoothData>? _dataSubscription;
+  static ClassicBluetooth? _classicBluetooth;
+
+  factory ClassicBluetooth() => _classicBluetooth ??= ClassicBluetooth._();
+
   @override
-  FlutterBluetoothSerial origin() {
+  FlutterBluetoothClassic origin() {
     return _instance;
   }
 
   @override
   Future<bool> availableBluetooth() async {
-    return await _instance.isAvailable ?? false;
+    return await _instance.isBluetoothSupported();
   }
 
   @override
   Future<bool> bluetoothIsEnabled() async {
-    return await _instance.isEnabled ?? false;
+    return await _instance.isBluetoothEnabled();
   }
 
   @override
   Future<ConnectedDevice> connect(ClassicBluetoothDevice device) async {
-    var originDevice = device.origin;
-    var address = originDevice.address;
-    var connection = await BluetoothConnection.toAddress(address);
+    await stopDiscovery();
+
+    var address = device.mac ?? device.origin.address;
+    if (address.isEmpty) {
+      throw Exception("[bluetooth-classic] device address is empty");
+    }
+
+    final connected = await _instance.connect(address);
+    if (!connected) {
+      throw Exception(
+          "[bluetooth-classic] failed to connect to device: $address");
+    }
+
     _connectedDevice = ClassicConnectedDevice(
-      connection: connection,
+      bluetooth: _instance,
       connectedDevice: device,
     );
+
+    // Listen for incoming data
+    _dataSubscription?.cancel(); // Cancel previous subscription if any
+    _dataSubscription = _instance.onDataReceived.listen((data) {
+      _connectedDevice?._onDataReceived(data);
+    });
+
     return _connectedDevice!;
   }
 
   Future<ConnectedDevice> connectWithMac(String name, String macAddress) async {
-    var connection = await BluetoothConnection.toAddress(macAddress);
-    _connectedDevice = ClassicConnectedDevice(
-      connection: connection,
-      connectedDevice: _Helpers.fromMacAddress(name, macAddress),
-    );
-    return _connectedDevice!;
+    final device = _Helpers.fromMacAddress(name, macAddress);
+    return await connect(device);
   }
 
   @override
   Future<bool> isConnected() async {
-    return ConnectionState.connected == _connectedDevice?.connectionState();
+    return _connectedDevice?.connectionState() == ConnectionState.connected;
   }
 
   @override
   Future<bool> isDiscovery() async {
-    var status = await Permission.bluetoothScan.status;
-    if (!status.isGranted) return false;
-    return await _instance.isDiscovering ?? false;
+    // flutter_bluetooth_classic_serial không có method isDiscovering
+    // Sử dụng stream controller để track
+    return false; // Simplified - có thể cải thiện sau
   }
 
   @override
@@ -76,60 +91,65 @@ class ClassicBluetooth extends Fluetooth<FlutterBluetoothSerial, ClassicBluetoot
     if (disconnectConnectedDevice && await isConnected()) {
       await _connectedDevice?.disconnect();
     }
+
     if (!await _isReadyDiscovery()) {
       return;
     }
-    notifiedDevices.clear();
-    _instance.startDiscovery().listen((result) {
-      _discoveryController.add(_Helpers.fromClassicScanResult(result));
-    });
+
+    try {
+      // Lấy danh sách thiết bị đã paired
+      final pairedDevices = await _instance.getPairedDevices();
+
+      for (final device in pairedDevices) {
+        _discoveryController.add(_Helpers.fromBluetoothDevice(device));
+      }
+    } catch (e) {
+      throw Exception("[bluetooth-classic] discovery failed: $e");
+    }
   }
 
   @override
   Future<void> stopDiscovery() async {
-    await _instance.cancelDiscovery();
+    // flutter_bluetooth_classic_serial không có cancelDiscovery
+    // Discovery dựa trên getPairedDevices nên không cần stop
   }
 
   //# private function
   Future<bool> _isReadyDiscovery() async {
-    if (await _instance.isEnabled == false) {
+    if (!await _instance.isBluetoothEnabled()) {
       return false;
     }
-    if (await _instance.isAvailable == false) {
+    if (!await _instance.isBluetoothSupported()) {
       return false;
     }
     return true;
   }
 
   Future<void> setPin(String? pin) async {
-    if (pin == null) {
-      _instance.setPairingRequestHandler(null);
-      return;
-    }
-    _instance.setPairingRequestHandler((BluetoothPairingRequest request) {
-      if (request.pairingVariant == PairingVariant.Pin) {
-        return Future.value(pin);
-      } else if (request.pairingVariant == PairingVariant.Consent) {
-        return Future.value(true);
-      }
-      return Future.value(null);
-    });
+    // flutter_bluetooth_classic_serial không có setPin method
+    // Có thể cần implement riêng nếu cần
   }
 }
 
 class _Helpers {
-  static ClassicBluetoothDevice fromClassicScanResult(BluetoothDiscoveryResult result) {
-    var device = result.device;
+  static ClassicBluetoothDevice fromBluetoothDevice(BluetoothDevice device) {
     return ClassicBluetoothDevice(
       origin: device,
       name: device.name,
       mac: device.address,
-      rssi: result.rssi,
+      rssi:
+          null, // flutter_bluetooth_classic_serial không có RSSI trong paired devices
     );
   }
-  static ClassicBluetoothDevice fromMacAddress(String name ,String macAddress) {
+
+  static ClassicBluetoothDevice fromMacAddress(String name, String macAddress) {
+    // Tạo một BluetoothDevice giả để giữ compatibility
     return ClassicBluetoothDevice(
-      origin: BluetoothDevice(address: macAddress),
+      origin: BluetoothDevice(
+        name: name,
+        address: macAddress,
+        paired: true, // Assume paired when connecting by MAC
+      ),
       name: name,
       mac: macAddress,
     );

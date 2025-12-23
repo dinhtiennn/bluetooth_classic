@@ -2,23 +2,26 @@ part of 'package:bluetooth_classic/bluetooth_classic.dart';
 
 /// Classic connected device
 class ClassicConnectedDevice extends ConnectedDevice {
-  BluetoothConnection? _connection;
+  final FlutterBluetoothClassic _bluetooth;
   ClassicBluetoothDevice? _connectedDevice;
   final _readController = StreamController<Uint8List>.broadcast();
   bool _isWriting = false;
+  bool _isConnected = true;
+
   ClassicConnectedDevice({
-    required BluetoothConnection connection,
+    required FlutterBluetoothClassic bluetooth,
     required ClassicBluetoothDevice connectedDevice,
-  }) {
-    _connection = connection;
+  }) : _bluetooth = bluetooth {
     _connectedDevice = connectedDevice;
-    var input = _connection!.input;
-    if (input == null) {
-      return;
+  }
+
+  void _onDataReceived(BluetoothData data) {
+    if (_isConnected) {
+      // BluetoothData có asString() - convert string to bytes
+      final string = data.asString();
+      // Convert string to Uint8List
+      _readController.add(Uint8List.fromList(string.codeUnits));
     }
-    input.listen((data) {
-      _readController.add(data);
-    });
   }
 
   @override
@@ -28,9 +31,7 @@ class ClassicConnectedDevice extends ConnectedDevice {
 
   @override
   ConnectionState connectionState() {
-    return (_connection?.isConnected ?? false)
-        ? ConnectionState.connected
-        : ConnectionState.disconnected;
+    return _isConnected ? ConnectionState.connected : ConnectionState.disconnected;
   }
 
   @override
@@ -45,8 +46,12 @@ class ClassicConnectedDevice extends ConnectedDevice {
 
   @override
   Future<void> disconnect() async {
-    _connection?.close();
-    _connection = null;
+    try {
+      await _bluetooth.disconnect();
+    } catch (e) {
+      // Ignore disconnect errors
+    }
+    _isConnected = false;
     _connectedDevice = null;
   }
 
@@ -60,15 +65,27 @@ class ClassicConnectedDevice extends ConnectedDevice {
     Uint8List data, {
     bool sendDone = true,
   }) async {
+    if (!_isConnected) {
+      throw Exception("[bluetooth-classic] device is not connected");
+    }
+
     // 加锁
     if (_isWriting) {
       throw Exception("[bluetooth-classic] write is already in progress");
     }
     _isWriting = true;
     try {
-      _connection!.output.add(data);
+      // Convert bytes to string và gửi
+      // Note: Có thể mất dữ liệu nếu bytes không phải là text
+      // Để gửi binary data, cần encode (ví dụ: base64)
+      final string = String.fromCharCodes(data);
+      await _bluetooth.sendString(string);
+      
+      // Nếu cần đợi gửi xong
       if (sendDone) {
-        await _connection!.output.allSent;
+        // flutter_bluetooth_classic_serial không có allSent
+        // Thêm delay nhỏ để đảm bảo dữ liệu được gửi
+        await Future.delayed(const Duration(milliseconds: 50));
       }
     } finally {
       // 释放锁

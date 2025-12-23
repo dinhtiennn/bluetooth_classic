@@ -9,8 +9,8 @@ class ClassicBluetoothDevice extends FluetoothDevice<BluetoothDevice> {
   }) : super(
           origin: origin,
           protocol: BluetoothProtocol.classic,
-          name: name,
-          mac: mac,
+          name: name ?? origin.name,
+          mac: mac ?? origin.address,
           rssi: rssi,
         );
 }
