@@ -1,4 +1,4 @@
-part of 'package:psdk_bluetooth_classic/psdk_bluetooth_classic.dart';
+part of 'package:bluetooth_classic/bluetooth_classic.dart';
 
 class ClassicBluetooth extends Fluetooth<FlutterBluetoothSerial, ClassicBluetoothDevice> {
   final FlutterBluetoothSerial _instance = FlutterBluetoothSerial.instance;

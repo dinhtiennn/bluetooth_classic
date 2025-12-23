@@ -1,4 +1,4 @@
-name: psdk_bluetooth_classic
+name: bluetooth_classic
 description: Classic bluetooth device
 version: 0.1.4
 repository: https://github.com/prtmax/psdk-examples
@@ -7,8 +7,8 @@ environment:
   flutter: '>=1.17.0'
 
 dependencies:
-  psdk_bluetooth_traits: ^0.1.3
-  psdk_device_adapter: ^0.1.3
+  psdk_bluetooth_traits: ^0.1.4
+  psdk_device_adapter: ^0.1.4
   flutter_bluetooth_serial: ^0.4.0
   collection: ^1.19.1
   permission_handler: ^12.0.1

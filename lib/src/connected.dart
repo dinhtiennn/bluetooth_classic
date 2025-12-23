@@ -1,10 +1,6 @@
-import 'dart:async';
-import 'dart:typed_data';
+part of 'package:bluetooth_classic/bluetooth_classic.dart';
 
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:psdk_bluetooth_classic/psdk_bluetooth_classic.dart';
-import 'package:psdk_device_adapter/psdk_device_adapter.dart';
-
+/// Classic connected device
 class ClassicConnectedDevice extends ConnectedDevice {
   BluetoothConnection? _connection;
   ClassicBluetoothDevice? _connectedDevice;
@@ -55,7 +51,7 @@ class ClassicConnectedDevice extends ConnectedDevice {
   }
 
   @override
-  Stream<Uint8List> read(ReadOptions? options){
+  Stream<Uint8List> read(ReadOptions? options) {
     return _readController.stream;
   }
 
@@ -78,6 +74,5 @@ class ClassicConnectedDevice extends ConnectedDevice {
       // 释放锁
       _isWriting = false;
     }
-
   }
 }

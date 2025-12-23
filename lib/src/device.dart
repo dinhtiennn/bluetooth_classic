@@ -1,4 +1,4 @@
-part of 'package:psdk_bluetooth_classic/psdk_bluetooth_classic.dart';
+part of 'package:bluetooth_classic/bluetooth_classic.dart';
 
 class ClassicBluetoothDevice extends FluetoothDevice<BluetoothDevice> {
   ClassicBluetoothDevice({

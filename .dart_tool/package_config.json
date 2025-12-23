@@ -386,13 +386,13 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "psdk_bluetooth_classic",
+      "name": "bluetooth_classic",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2025-12-23T01:43:06.921628Z",
+  "generated": "2025-12-23T01:57:04.807565Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/Users/dinht/fvm/default",
