@@ -17,10 +17,8 @@ class ClassicConnectedDevice extends ConnectedDevice {
 
   void _onDataReceived(BluetoothData data) {
     if (_isConnected) {
-      // BluetoothData có asString() - convert string to bytes
-      final string = data.asString();
-      // Convert string to Uint8List
-      _readController.add(Uint8List.fromList(string.codeUnits));
+      // Dữ liệu thô (bytes) từ thiết bị ngoại vi
+      _readController.add(Uint8List.fromList(data.data));
     }
   }
 
@@ -75,16 +73,15 @@ class ClassicConnectedDevice extends ConnectedDevice {
     }
     _isWriting = true;
     try {
-      // Convert bytes to string và gửi
-      // Note: Có thể mất dữ liệu nếu bytes không phải là text
-      // Để gửi binary data, cần encode (ví dụ: base64)
-      final string = String.fromCharCodes(data);
-      await _bluetooth.sendString(string);
+      // Gửi dữ liệu thô (binary) đúng như demo
+      final ok = await _bluetooth.sendData(data);
+      if (!ok) {
+        throw Exception('[bluetooth-classic] sendData returned false');
+      }
       
       // Nếu cần đợi gửi xong
       if (sendDone) {
-        // flutter_bluetooth_classic_serial không có allSent
-        // Thêm delay nhỏ để đảm bảo dữ liệu được gửi
+        // Plugin không có allSent; delay nhỏ để giảm khả năng mất gói với một số thiết bị
         await Future.delayed(const Duration(milliseconds: 50));
       }
     } finally {

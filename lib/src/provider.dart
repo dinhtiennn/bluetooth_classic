@@ -12,6 +12,8 @@ class ClassicBluetooth
   final _discoveryController =
       StreamController<ClassicBluetoothDevice>.broadcast();
   StreamSubscription<BluetoothData>? _dataSubscription;
+  StreamSubscription<BluetoothDevice>? _deviceDiscoverySubscription;
+  bool _isDiscovering = false;
   static ClassicBluetooth? _classicBluetooth;
 
   factory ClassicBluetooth() => _classicBluetooth ??= ClassicBluetooth._();
@@ -72,9 +74,7 @@ class ClassicBluetooth
 
   @override
   Future<bool> isDiscovery() async {
-    // flutter_bluetooth_classic_serial không có method isDiscovering
-    // Sử dụng stream controller để track
-    return false; // Simplified - có thể cải thiện sau
+    return _isDiscovering;
   }
 
   @override
@@ -96,22 +96,40 @@ class ClassicBluetooth
       return;
     }
 
-    try {
-      // Lấy danh sách thiết bị đã paired
-      final pairedDevices = await _instance.getPairedDevices();
+    // reset
+    _isDiscovering = true;
+    await stopDiscovery();
 
-      for (final device in pairedDevices) {
-        _discoveryController.add(_Helpers.fromBluetoothDevice(device));
-      }
-    } catch (e) {
-      throw Exception("[bluetooth-classic] discovery failed: $e");
+    // Listen realtime device found events (giống demo)
+    _deviceDiscoverySubscription =
+        _instance.onDeviceDiscovered.listen((BluetoothDevice device) {
+      _discoveryController.add(_Helpers.fromBluetoothDevice(device));
+    });
+
+    // Start discovery
+    final ok = await _instance.startDiscovery();
+    if (!ok) {
+      _isDiscovering = false;
+      throw Exception('[bluetooth-classic] startDiscovery returned false');
     }
+
+    // Auto-stop sau timeout (giống behavior BLE package)
+    Timer(timeout, () {
+      // ignore: discarded_futures
+      stopDiscovery();
+    });
   }
 
   @override
   Future<void> stopDiscovery() async {
-    // flutter_bluetooth_classic_serial không có cancelDiscovery
-    // Discovery dựa trên getPairedDevices nên không cần stop
+    try {
+      await _instance.stopDiscovery();
+    } catch (_) {
+      // ignore
+    }
+    await _deviceDiscoverySubscription?.cancel();
+    _deviceDiscoverySubscription = null;
+    _isDiscovering = false;
   }
 
   //# private function
