@@ -75,7 +75,7 @@
     },
     {
       "name": "flutter",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.29.2/packages/flutter",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -87,7 +87,7 @@
     },
     {
       "name": "flutter_web_plugins",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.29.2/packages/flutter_web_plugins",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/packages/flutter_web_plugins",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -267,7 +267,7 @@
     },
     {
       "name": "sky_engine",
-      "rootUri": "file:///C:/Users/dinht/fvm/versions/3.29.2/bin/cache/pkg/sky_engine",
+      "rootUri": "file:///C:/Users/dinht/fvm/default/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
       "languageVersion": "3.7"
     },
@@ -392,10 +392,10 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2025-12-23T01:38:04.648452Z",
+  "generated": "2025-12-23T01:43:06.921628Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
-  "flutterRoot": "file:///C:/Users/dinht/fvm/versions/3.29.2",
+  "flutterRoot": "file:///C:/Users/dinht/fvm/default",
   "flutterVersion": "3.29.2",
   "pubCache": "file:///C:/Users/dinht/AppData/Local/Pub/Cache"
 }
